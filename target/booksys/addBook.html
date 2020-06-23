@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>无标题文档</title>
+    <script src="js/jquery-1.12.4.js"></script>
+</head>
+
+<body>
+	<div style="width:500px; margin:0px auto">
+   	  <div style="width:500px; margin:0px auto; text-align:center">
+      <h2>添加图书信息</h2></div>
+        <div>
+        <form action="" method="post" id="addForm">
+            <table width="500" border="1" cellspacing="0" cellpadding="0">
+
+      <tr>
+        <td width="145">图书名称</td>
+        <td width="349"><label for="bookname"></label>
+        <input type="text" name="bookname" id="bookname" /></td>
+      </tr>
+      <tr>
+        <td>图书价格</td>
+        <td><input type="text" name="price" id="price" /></td>
+      </tr>
+      <tr>
+        <td>出版时间</td>
+        <td><input type="date" name="pubtime" id="pubtime" /></td>
+      </tr>
+      <tr>
+        <td>图书作者</td>
+        <td><input type="text" name="author" id="author" /></td>
+      </tr>
+      <tr>
+        <td>图书类型</td>
+        <td>
+          <select name="typeid" id="typeid">
+
+        </select></td>
+      </tr>
+      <tr>
+        <td colspan="2" align="center" valign="middle"><input type="button" name="btnAdd" id="btnAdd" value="添加图书" onclick="add()"/>
+        &nbsp;<input type="reset" name="btnReset" id="btnReset" value="重置图书" /></td>
+        </tr>
+    </table>
+    </form>
+    </div>
+    </div>
+
+    <script type="application/javascript">
+        $(function () {
+           $.post(
+               "pre_add",
+               function (data) {
+                  var option='<option value="-1">--请选择图书类型--</option>';
+                  $(data.data).each(function () {
+                      option+='<option value="'+this.typeid+'">'+this.typename+'</option>'
+                  });
+                  $("#typeid").html(option);
+               }
+           );
+        });
+
+        function add() {
+            $.get(
+                "addBook11",
+                $("#addForm").serialize(),
+                function (data) {
+                    if (data.flag==true){
+                        alert("添加成功");
+                        location.href="index.html";
+                    }else {
+                        alert("添加失败");
+                    }
+                }
+            );
+
+        }
+    </script>
+</body>
+</html>

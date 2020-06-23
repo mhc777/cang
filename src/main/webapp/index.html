@@ -1,0 +1,233 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>无标题文档</title>
+	<script src="js/jquery-1.12.4.js"></script>
+
+</head>
+
+<body style="width:900px; margin:0px auto;">
+	<div style="width:900px; text-align:center">
+    	<h2>图书信息列表</h2>
+    </div>
+    <div style="width:880px; text-align:right; padding-right:20px; line-height:25px; height:25px;"><a href="addBook.html">添加图书信息</a>&nbsp;&nbsp;<a href="javascript:batDelect()">批量删除2</a></div>
+    <div style="width:900px; text-align:center">
+    	<form action="" method="post" id="page_form">
+    	图书类型：
+			<input type="hidden" id="pageNum" name="pageNum">
+    	  <select name="typeid" id="typeid">
+    	    <option value="-1">-请选择图书类型--</option>
+  	      </select>
+    	作者：
+    	<input name="author" type="text" id="author" size="10" />
+    	价格：
+    	<input name="min_price" type="text" id="min_price" size="10" />
+    	到
+    	<input name="max_price" type="text" id="max_price" size="10" />
+    	<input type="submit" name="btnSearch" id="btnSearch" value="查询图书" onclick="page_form()"/>
+    	</form>
+    </div>
+    <div style="width:900px; text-align:center">
+      <table width="900" border="1" cellspacing="0" cellpadding="0">
+
+      </table>
+    </div>
+    <script type="application/javascript">
+		var state=0
+        function getMyDate(str) {
+            var oDate = new Date(str),
+                oYear = oDate.getFullYear(),
+                oMonth = oDate.getMonth()+1,
+                oDay = oDate.getDate(),
+                oHour = oDate.getHours(),
+                oMin = oDate.getMinutes(),
+                oSen = oDate.getSeconds(),
+                oTime = oYear +'-'+ addZero(oMonth) +'-'+ addZero(oDay);
+            return oTime;
+        }
+
+        //补零操作
+        function addZero(num){
+            if(parseInt(num) < 10){
+                num = '0'+num;
+            }
+            return num;
+        }
+
+
+        function page_form() {
+			var pageNum=$("#pagename").val();
+			do_page(pageNum);
+        }
+
+        function do_page(pageNum) {
+			$("#pageNum").val(pageNum);
+			$.get(
+			    "page_list",
+				$("#page_form").serialize(),
+			    function (data) {
+                    var tr=' <tr>\n' +
+                        '          <td><input type="checkbox" onclick="qx()">全选<button onclick="fx()">反选</button></td>\n' +
+                        '          <td>编号</td>\n' +
+                        '          <td>图书名称</td>\n' +
+                        '          <td>价格</td>\n' +
+                        '          <td>出版时间</td>\n' +
+                        '          <td>作者</td>\n' +
+                        '          <td>图书类型</td>\n' +
+                        '          <td>详细</td>\n' +
+                        '          <td>删除</td>\n' +
+                        '          <td>修改</td>\n' +
+                        '        </tr>';
+                    if (data.page!=null && data.types!=null){
+                        $(data.page.list).each(function (index, obj) {
+                            tr+='<tr id='+obj.bookid+'>';
+                            tr+='<td>'+'<input type="checkbox" value="'+obj.bookid+'">'+'</td>';
+                            tr+='<td>'+obj.bookid+'</td>';
+                            tr+='<td>'+obj.bookname+'</td>';
+                            tr+='<td>'+obj.price+'</td>';
+                            var time=getMyDate(obj.pubtime);
+                            tr+='<td>'+time+'</td>';
+                            tr+='<td>'+obj.author+'</td>';
+                            tr+='<td>'+obj.typename+'</td>';
+                            tr+='<td><a href="javascript:do_detail('+obj.bookid+')">详细</a></td>';
+                            tr+='<td><input type="checkbox" name="kk" id="inputKK" value="'+obj.bookid+'"><a href="javascript:do_delete('+obj.bookid+')">删除</a></td>';
+                            tr+='<td><a href="javascript:do_update('+obj.bookid+')">修改</a></td>';
+                            tr+='</tr>';
+                        });
+                        tr+='        <tr>\n' +
+                            '          <td colspan="9" align="center" valign="middle">' +
+                            '<a href="javascript:do_page(1)">' + '首页</a>' +
+                            '<a href="javascript:do_page('+(data.page.pageNum-1)+')">' + '上一页</a>' +
+                            '<a href="javascript:do_page('+(data.page.pageNum+1)+')">' + '下一页</a>' +
+                            '<a href="javascript:do_page('+data.page.pages+')">末页</a>' +'当前页:'+data.page.pageNum+'/总页数:'+data.page.pages+'<input type="button" onclick="deleteC()" value="批量删除">'+
+                            '</td>\n' +
+                            '        </tr>';
+                        $("table").html(tr);
+
+
+                        var option='<option value="-1">-请选择图书类型-</option>';
+                        $(data.types).each(function () {
+                            option+='<option value="'+this.typeid+'">'+this.typename+'</option>';
+                        });
+                        $("#typeid").html(option);
+
+                        $("option").each(function () {
+                            if ($(this).val()==data.vo.typeid){
+                                $(this).attr("selected",true);
+                            }
+                        });
+
+                        $("#author").val(data.vo.author);
+                        $("#min_price").val(data.vo.min_price);
+                        $("#max_price").val(data.vo.max_price);
+
+                    }else {
+                        alert("查询失败");
+                    }
+
+                }
+			);
+        }
+        $(function () {
+            do_page(1);
+
+
+        });
+
+        function do_delete(id) {
+            var tr=$("[id='"+id+"']");
+			$.post(
+			    "delete",
+				{"bookid":id},
+				function (data) {
+					if (data.flag==true){
+					    alert("删除成功");
+					    $("table")[0].removeChild(tr[0]);
+					}else {
+					    alert("删除失败");
+					}
+                }
+			);
+        }
+       //批量删除
+        function deleteC() {
+			var option=$(":checked");
+			var checkId='';
+			if (option.length>1){
+                for(var i=0;i<option.length;i++){
+                    checkId+=option[i].value+",";
+                }
+
+                $.post(
+                    "deleteChecked",
+                    {"checkId":checkId},
+                    function (data) {
+                        if (data.flag==true){
+                            alert("批量删除成功");
+                            window.location.href="index.html";
+                        }else {
+                            alert("批量删除失败")
+                        }
+                    }
+                );
+			}else {
+			    alert("请选择要批量删除的商品")
+			}
+
+        }
+
+        //批量删除2
+		function batDelect() {
+            //获取所有被选中的CheckBox
+			var checkboxs=$("input:checkbox:checked");
+			var arr=new Array();
+
+			//把1中的值放到数组arr中
+			$(checkboxs).each(function () {
+				arr.push($(this).val());
+            });
+			//向后台发送ajax请求
+			$.post(
+			    "batDelete",
+				{arr:arr},
+				function (data) {
+					if (data.flag==true){
+                        alert("批量删除成功");
+                        window.location.href="index.html";
+					}else {
+					    alert("批量删除失败")
+					}
+
+                }
+			);
+        }
+        function do_update(id) {
+			window.location.href="updateBook.html?bookid="+id;
+        }
+
+        function do_detail(id) {
+			window.location.href="detail.html?bookid="+id;
+        }
+
+        function qx() {
+			if (state==0){
+			    $("input:checkbox:gt(0)").prop("checked",true);
+			    state=1;
+			}else {
+                $("input:checkbox:gt(0)").prop("checked",false);
+                state=0;
+			}
+        }
+
+        function fx() {
+			var checkboxes=$("input:checkbox:gt(0)");
+
+			$(checkboxes).each(function () {
+				$(this).prop("checked",!$(this).prop("checked"));
+            });
+        }
+
+    </script>
+</body>
+</html>
